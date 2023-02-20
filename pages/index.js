@@ -26,7 +26,7 @@ export default function Home({pizzalist}) {
 
 
 export const getServerSideProps = async () => {
-  const res = await axios.get('http://localhost:3000/api/products', {headers:{"Content-Type" : "application/json"}})
+  const res = await axios.get('http://localhost:3000/api/products')
   return{
     props: {
       pizzalist: res.data,

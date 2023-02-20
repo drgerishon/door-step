@@ -1,29 +1,30 @@
-import Image from 'next/image';
-import React, { useState, useEffect } from 'react';
-import styles from '../styles/Cart.module.css';
-import { useDispatch, useSelector } from 'react-redux';
-import { useRouter } from 'next/router';
-import { reset } from '../redux/cartSlice';
-import axios from 'axios';
+import styles from "../styles/Cart.module.css";
+import Image from "next/image";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 import {
   PayPalScriptProvider,
   PayPalButtons,
   usePayPalScriptReducer,
-} from '@paypal/react-paypal-js';
+} from "@paypal/react-paypal-js";
+import axios from "axios";
+import { useRouter } from "next/router";
+import { reset } from "../redux/cartSlice";
+import OrderDetail from "../components/OrderDetail";
 
 const Cart = () => {
   const cart = useSelector((state) => state.cart);
   const [open, setOpen] = useState(false);
-  const [cash, setCash] =useState(false);
+  const [cash, setCash] = useState(false);
   const amount = cart.total;
-  const currency = 'USD';
-  const style = { layout: 'vertical' };
+  const currency = "USD";
+  const style = { layout: "vertical" };
   const dispatch = useDispatch();
   const router = useRouter();
 
   const createOrder = async (data) => {
     try {
-      const res = await axios.post('http://localhost:3000/api/orders', data);
+      const res = await axios.post("http://localhost:3000/api/orders", data);
       if (res.status === 201) {
         dispatch(reset());
         router.push(`/orders/${res.data._id}`);
@@ -33,6 +34,7 @@ const Cart = () => {
     }
   };
 
+  // Custom component to wrap the PayPalButtons and handle currency changes
   const ButtonWrapper = ({ currency, showSpinner }) => {
     // usePayPalScriptReducer can be use only inside children of PayPalScriptProviders
     // This is the main reason to wrap the PayPalButtons in a new component
@@ -40,7 +42,7 @@ const Cart = () => {
 
     useEffect(() => {
       dispatch({
-        type: 'resetOptions',
+        type: "resetOptions",
         value: {
           ...options,
           currency: currency,
@@ -78,7 +80,7 @@ const Cart = () => {
               const shipping = details.purchase_units[0].shipping;
               createOrder({
                 customer: shipping.name.full_name,
-                address: shipping.address.shipping_line_1,
+                address: shipping.address.address_line_1,
                 total: cart.total,
                 method: 1,
               });
@@ -121,20 +123,20 @@ const Cart = () => {
                 </td>
                 <td>
                   <span className={styles.extras}>
-                    {product.extraOptions.map((extra) => (
+                    {product.extras.map((extra) => (
                       <span key={extra._id}>{extra.text}, </span>
                     ))}
                   </span>
                 </td>
                 <td>
-                  <span className={styles.price}>Ksh {product.price}</span>
+                  <span className={styles.price}>${product.price}</span>
                 </td>
                 <td>
                   <span className={styles.quantity}>{product.quantity}</span>
                 </td>
                 <td>
                   <span className={styles.total}>
-                    Ksh {product.price * product.quantity}
+                    ${product.price * product.quantity}
                   </span>
                 </td>
               </tr>
@@ -146,23 +148,29 @@ const Cart = () => {
         <div className={styles.wrapper}>
           <h2 className={styles.title}>CART TOTAL</h2>
           <div className={styles.totalText}>
-            <b className={styles.totalTextTitle}>Subtotal :</b>Ksh {cart.total}
+            <b className={styles.totalTextTitle}>Subtotal:</b>${cart.total}
           </div>
           <div className={styles.totalText}>
-            <b className={styles.totalTextTitle}>Discount :</b>Ksh 00
+            <b className={styles.totalTextTitle}>Discount:</b>$0.00
           </div>
           <div className={styles.totalText}>
-            <b className={styles.totalTextTitle}>Total :</b> Ksh {cart.total}
+            <b className={styles.totalTextTitle}>Total:</b>${cart.total}
           </div>
           {open ? (
             <div className={styles.paymentMethods}>
-              <button className={styles.payButton} onClick={() => setCash(true)}>CaSH ON DELIVERY</button>
+              <button
+                className={styles.payButton}
+                onClick={() => setCash(true)}
+              >
+                CASH ON DELIVERY
+              </button>
               <PayPalScriptProvider
                 options={{
-                  'client-id':
-                    'AeLMuMKw9psY4KXW2KZPJViBh31MCWZXdcAp3xHdoi6fnceF36Yss4gGEb4rzeWnDZFY0oIjUKO6cob3',
-                  components: 'buttons',
-                  currency: 'USD',
+                  "client-id":
+                    "AeLMuMKw9psY4KXW2KZPJViBh31MCWZXdcAp3xHdoi6fnceF36Yss4gGEb4rzeWnDZFY0oIjUKO6cob3",
+                  components: "buttons",
+                  currency: "USD",
+                  "disable-funding": "credit,card,p24",
                 }}
               >
                 <ButtonWrapper currency={currency} showSpinner={false} />
@@ -175,6 +183,7 @@ const Cart = () => {
           )}
         </div>
       </div>
+      {cash && <OrderDetail total={cart.total} createOrder={createOrder} />}
     </div>
   );
 };

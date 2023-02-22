@@ -11,6 +11,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { reset } from "../redux/cartSlice";
 import OrderDetail from "../components/OrderDetail";
+import OrderDetailed from "../components/OrderDetailed";
 
 const Cart = () => {
   const cart = useSelector((state) => state.cart);
@@ -183,7 +184,7 @@ const Cart = () => {
           )}
         </div>
       </div>
-      {cash && <OrderDetail total={cart.total} createOrder={createOrder} />}
+      {cash && <OrderDetailed total={cart.total} createOrder={createOrder} />}
     </div>
   );
 };
